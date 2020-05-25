@@ -928,8 +928,7 @@ func (d *Decoder) decodePtr(name string, data interface{}, val reflect.Value) (b
 		return true, nil
 	}
 
-	// Create an element of the concrete (non pointer) type and decode
-	// into that. Then set the value of the pointer to this type.
+	// Create an element of the concrete (non pointer) type and decode into that.
 	valType := val.Type()
 	valElemType := valType.Elem()
 	if val.CanSet() {
@@ -938,11 +937,20 @@ func (d *Decoder) decodePtr(name string, data interface{}, val reflect.Value) (b
 			realVal = reflect.New(valElemType)
 		}
 
+		valElemTypeIsPrimitive := valElemType.Kind() <= reflect.Complex128
+		if !valElemTypeIsPrimitive {
+			// Set the the value of the pointer to realVal before decoding so that even
+			// if decoding fails, the partially decoded structure is accessible in the output.
+			val.Set(realVal)
+		}
+
 		if err := d.decode(name, data, reflect.Indirect(realVal)); err != nil {
 			return false, err
 		}
 
-		val.Set(realVal)
+		if valElemTypeIsPrimitive {
+			val.Set(realVal)
+		}
 	} else {
 		if err := d.decode(name, data, reflect.Indirect(val)); err != nil {
 			return false, err

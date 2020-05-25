@@ -475,3 +475,21 @@ func TestDecodeBadDataTypeInSlice(t *testing.T) {
 		t.Error("An error was expected, got nil")
 	}
 }
+
+// Test that error in field decoding doesn't affect the structure being assigned in a field.
+func TestDecodeStructPointerError(t *testing.T) {
+	t.Parallel()
+
+	type Test struct {
+		Foo *int
+		Bar *Test
+	}
+	s := Test{}
+	if err := Decode(map[string]interface{}{"bar": map[string]interface{}{"foo": "bar"}}, &s); err == nil {
+		t.Fatal("expected one error")
+	}
+	want := Test{Foo: nil, Bar: &Test{}}
+	if !reflect.DeepEqual(s, want) {
+		t.Error("expected to be equal: ", s, want)
+	}
+}

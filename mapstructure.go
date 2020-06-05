@@ -847,7 +847,7 @@ func (d *Decoder) decodeMapFromStruct(name string, dataVal reflect.Value, val re
 		// Determine the name of the key in the map
 		if index := strings.Index(tagValue, ","); index != -1 {
 			if tagValue[:index] == "-" {
-				continue;
+				continue
 			}
 			// If "omitempty" is specified in the tag, it ignores empty values.
 			if strings.Index(tagValue[index + 1:], "omitempty") != -1 && isEmptyValue(v) {
@@ -879,7 +879,8 @@ func (d *Decoder) decodeMapFromStruct(name string, dataVal reflect.Value, val re
 			mType := reflect.MapOf(vKeyType, vElemType)
 			vMap := reflect.MakeMap(mType)
 
-			err := d.decode(keyName, x.Interface(), vMap)
+			fieldName := fmt.Sprintf("%s.%s", name, keyName)
+			err := d.decode(fieldName, x.Interface(), vMap)
 			if err != nil {
 				return err
 			}

@@ -48,7 +48,7 @@ func TestComposeDecodeHookFunc_err(t *testing.T) {
 
 	_, err := DecodeHookExec(
 		f, reflect.TypeOf(""), reflect.TypeOf([]byte("")), 42)
-	if err.Error() != "foo" {
+	if err == nil || err.Error() != "foo" {
 		t.Fatalf("bad: %s", err)
 	}
 }

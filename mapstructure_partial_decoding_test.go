@@ -64,3 +64,27 @@ func TestArrayElementDecodingError(t *testing.T) {
 		t.Fatalf("bad: %#v", a)
 	}
 }
+
+func TestDecode2(t *testing.T) {
+	type Foo struct {
+		Foo int
+		Bar int
+	}
+
+	var s Foo
+	res := Decode2(map[string]interface{}{"foo": "foo", "baz": 1}, &s)
+	if len(res.Errors) != 1 {
+		t.Fatalf("expected one error: %v", res.Errors)
+	}
+	if !res.TotalFailure {
+		t.Fatal("expected total failure")
+	}
+
+	res = Decode2(map[string]interface{}{"foo": "foo", "bar": 1}, &s)
+	if len(res.Errors) != 1 {
+		t.Fatalf("expected one error: %v", res.Errors)
+	}
+	if res.TotalFailure {
+		t.Fatal("expected not total failure")
+	}
+}

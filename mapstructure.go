@@ -299,6 +299,23 @@ func Decode(input interface{}, output interface{}) error {
 	return decoder.Decode(input)
 }
 
+// Decode takes an input structure and uses reflection to translate it to
+// the output structure. output must be a pointer to a map or struct.
+// Differs from Decode() by returning DecodingResult.
+func Decode2(input interface{}, output interface{}) DecodingResult {
+	config := &DecoderConfig{
+		Metadata: nil,
+		Result:   output,
+	}
+
+	decoder, err := NewDecoder(config)
+	if err != nil {
+		return DecodingResult{TotalFailure: true, Errors: []error{err}}
+	}
+
+	return decoder.Decode2(input)
+}
+
 // WeakDecode is the same as Decode but is shorthand to enable
 // WeaklyTypedInput. See DecoderConfig for more info.
 func WeakDecode(input, output interface{}) error {
@@ -393,6 +410,12 @@ func (d *Decoder) Decode(input interface{}) error {
 		return &Error{Errors: res.Errors}
 	}
 	return nil
+}
+
+// Decode decodes the given raw interface to the target pointer specified
+// by the configuration. Differs from Decode() by returning DecodingResult.
+func (d *Decoder) Decode2(input interface{}) DecodingResult {
+	return d.decode("", input, reflect.ValueOf(d.config.Result).Elem())
 }
 
 // Decodes an unknown data type into a specific reflection value.
@@ -1236,7 +1259,7 @@ func (d *Decoder) decodeStructFromMap(name string, dataVal, val reflect.Value) D
 	// we are keeping track of remaining values.
 	var remainField *field
 
-	fields := []field{}
+	var fields []field
 	for len(structs) > 0 {
 		structVal := structs[0]
 		structs = structs[1:]
